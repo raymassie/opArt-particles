@@ -2,12 +2,19 @@
 
 3D particle system generator creating abstract op-art patterns with WebGL splats. Explore mesmerizing optical illusions in three-dimensional space.
 
+**[🎨 Live Demo](https://raymassie.github.io/opArt-particles/)**
+
 ## Features
 
-### 6 Dynamic Patterns
+### 11 Dynamic Patterns
 
 - **Spiral Vortex** - Helical particle spirals with twist animations
 - **Wave Field** - Multi-directional wave interference in 3D
+- **Ripple Pool** - Multi-source wave interference with four ripple centers
+- **Liquid Metal** - Flowing metallic surface with droplet disturbances
+- **Cymatics** - Standing wave patterns (Chladni plates)
+- **Flowing Fabric** - Cloth simulation with wind effects
+- **Torus Knot** - 3D mathematical knot with wave modulation
 - **Sphere Burst** - Pulsing Fibonacci sphere with noise displacement
 - **Tunnel Vision** - Infinite tunnel with zebra stripe effects
 - **3D Moiré** - Layered interference patterns with rotation
@@ -32,6 +39,7 @@
 - **Spacebar** - Pause/play animation
 - **Randomize** - Generate random combinations
 - **Save Image** - Export current frame as PNG
+- **Record Video** - Capture animations as WebM video (60 FPS)
 
 ## Technical Details
 
@@ -53,6 +61,11 @@ opArt-particles/
 └── patterns/
     ├── spiral.js       # Spiral vortex pattern
     ├── wave.js         # Wave field pattern
+    ├── ripple.js       # Ripple pool pattern
+    ├── liquid.js       # Liquid metal pattern
+    ├── cymatics.js     # Cymatics pattern
+    ├── fabric.js       # Flowing fabric pattern
+    ├── torus.js        # Torus knot pattern
     ├── sphere.js       # Sphere burst pattern
     ├── tunnel.js       # Tunnel vision pattern
     ├── moire.js        # 3D moiré pattern
@@ -101,13 +114,14 @@ class MyPattern {
 
 ## Usage
 
-1. Open `index.html` in a modern browser (WebGL 2.0 required)
+1. Visit the [live demo](https://raymassie.github.io/opArt-particles/) or open `index.html` locally
 2. Select pattern from dropdown
 3. Adjust parameters with sliders
 4. Click + drag to rotate view
 5. Scroll to zoom
 6. Click **Randomize** for instant variations
-7. Click **Save Image** to export
+7. Click **Save Image** to export PNG
+8. Click **Record Video** to capture animations
 
 ## Performance Tips
 
