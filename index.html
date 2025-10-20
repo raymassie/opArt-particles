@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Particle Op-Art</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div id="container">
+        <div id="controls">
+            <h1>Particle Op-Art</h1>
+            
+            <div class="control-group">
+                <label>Pattern:</label>
+                <select id="patternSelect">
+                    <option value="spiral">Spiral Vortex</option>
+                    <option value="wave">Wave Field</option>
+                    <option value="ripple">Ripple Pool</option>
+                    <option value="liquid">Liquid Metal</option>
+                    <option value="cymatics">Cymatics</option>
+                    <option value="fabric">Flowing Fabric</option>
+                    <option value="torus">Torus Knot</option>
+                    <option value="sphere">Sphere Burst</option>
+                    <option value="tunnel">Tunnel Vision</option>
+                    <option value="moire">3D Moiré</option>
+                    <option value="tornado">Tornado</option>
+                </select>
+            </div>
+            
+            <div class="control-group">
+                <label>Particle Count: <span id="particleCountValue">10000</span></label>
+                <input type="range" id="particleCount" min="1000" max="50000" step="1000" value="10000">
+            </div>
+            
+            <div class="control-group">
+                <label>Speed: <span id="speedValue">1.0</span></label>
+                <input type="range" id="speed" min="0" max="5" step="0.1" value="1">
+            </div>
+            
+            <div class="control-group">
+                <label>Spread: <span id="spreadValue">1.0</span></label>
+                <input type="range" id="spread" min="0.1" max="3" step="0.1" value="1">
+            </div>
+            
+            <div class="control-group">
+                <label>Complexity: <span id="complexityValue">1.0</span></label>
+                <input type="range" id="complexity" min="0.1" max="5" step="0.1" value="1">
+            </div>
+            
+            <div class="control-group">
+                <label>Particle Size: <span id="sizeValue">2.0</span></label>
+                <input type="range" id="particleSize" min="0.5" max="10" step="0.5" value="2">
+            </div>
+            
+            <div class="control-group">
+                <label>Rotation Speed: <span id="rotationValue">0.5</span></label>
+                <input type="range" id="rotationSpeed" min="0" max="2" step="0.1" value="0.5">
+            </div>
+            
+            <div class="control-group">
+                <label>
+                    <input type="checkbox" id="animate" checked>
+                    Animate
+                </label>
+            </div>
+            
+            <div class="control-group">
+                <label>
+                    <input type="checkbox" id="autoRotate" checked>
+                    Auto Rotate Camera
+                </label>
+            </div>
+            
+            <div class="control-group">
+                <label>
+                    <input type="checkbox" id="blackWhite">
+                    Black & White
+                </label>
+            </div>
+            
+            <button id="randomize">Randomize</button>
+            <button id="screenshot">Save Image</button>
+            
+            <div class="recording-section">
+                <button id="recordBtn" class="record-btn">● Record Video</button>
+                <div id="recordingStatus" class="recording-status hidden">
+                    <span class="recording-dot">●</span>
+                    <span id="recordingTime">00:00</span>
+                </div>
+            </div>
+            
+            <div class="info">
+                <p>Click + drag to rotate</p>
+                <p>Scroll to zoom</p>
+                <p>Spacebar to pause</p>
+            </div>
+        </div>
+        
+        <div id="canvas-container"></div>
+    </div>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="utils/helpers.js"></script>
+    <script src="patterns/spiral.js"></script>
+    <script src="patterns/wave.js"></script>
+    <script src="patterns/ripple.js"></script>
+    <script src="patterns/liquid.js"></script>
+    <script src="patterns/cymatics.js"></script>
+    <script src="patterns/fabric.js"></script>
+    <script src="patterns/torus.js"></script>
+    <script src="patterns/sphere.js"></script>
+    <script src="patterns/tunnel.js"></script>
+    <script src="patterns/moire.js"></script>
+    <script src="patterns/tornado.js"></script>
+    <script src="sketch.js"></script>
+</body>
+</html>
+

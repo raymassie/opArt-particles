@@ -1,0 +1,189 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Helvetica Neue', Arial, sans-serif;
+    background: #000;
+    color: #fff;
+    overflow: hidden;
+}
+
+#container {
+    display: flex;
+    height: 100vh;
+}
+
+#controls {
+    width: 300px;
+    padding: 20px;
+    background: #1a1a1a;
+    overflow-y: auto;
+    border-right: 2px solid #2a2a2a;
+    z-index: 10;
+}
+
+h1 {
+    font-size: 24px;
+    margin-bottom: 30px;
+    font-weight: 300;
+    letter-spacing: 2px;
+}
+
+.control-group {
+    margin-bottom: 20px;
+}
+
+.control-group label {
+    display: block;
+    margin-bottom: 8px;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: #aaa;
+}
+
+.control-group select,
+.control-group input[type="range"] {
+    width: 100%;
+    padding: 8px;
+    background: #0a0a0a;
+    border: 1px solid #2a2a2a;
+    color: #fff;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.control-group input[type="range"] {
+    padding: 0;
+}
+
+.control-group input[type="checkbox"] {
+    width: auto;
+    margin-right: 8px;
+    cursor: pointer;
+}
+
+button {
+    width: 100%;
+    padding: 12px;
+    margin-top: 10px;
+    background: #fff;
+    color: #1a1a1a;
+    border: none;
+    border-radius: 4px;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    cursor: pointer;
+    transition: background 0.3s;
+}
+
+button:hover {
+    background: #e0e0e0;
+}
+
+button:active {
+    background: #d0d0d0;
+}
+
+#canvas-container {
+    flex: 1;
+    position: relative;
+    background: #000;
+}
+
+#canvas-container canvas {
+    display: block;
+}
+
+select option {
+    background: #1a1a1a;
+    color: #fff;
+}
+
+.info {
+    margin-top: 30px;
+    padding-top: 20px;
+    border-top: 1px solid #2a2a2a;
+}
+
+.info p {
+    font-size: 10px;
+    color: #666;
+    margin-bottom: 5px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* Custom scrollbar */
+#controls::-webkit-scrollbar {
+    width: 6px;
+}
+
+#controls::-webkit-scrollbar-track {
+    background: #0a0a0a;
+}
+
+#controls::-webkit-scrollbar-thumb {
+    background: #2a2a2a;
+    border-radius: 3px;
+}
+
+#controls::-webkit-scrollbar-thumb:hover {
+    background: #3a3a3a;
+}
+
+/* Recording controls */
+.recording-section {
+    margin-top: 20px;
+    padding-top: 20px;
+    border-top: 1px solid #2a2a2a;
+}
+
+.record-btn {
+    background: #dc2626;
+    color: #fff;
+}
+
+.record-btn:hover {
+    background: #b91c1c;
+}
+
+.record-btn.recording {
+    background: #666;
+}
+
+.recording-status {
+    margin-top: 10px;
+    padding: 10px;
+    background: #dc2626;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+.recording-status.hidden {
+    display: none;
+}
+
+.recording-dot {
+    font-size: 16px;
+    animation: pulse 1s infinite;
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.3; }
+}
+
+#recordingTime {
+    font-size: 14px;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+}
+
