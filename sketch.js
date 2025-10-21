@@ -25,9 +25,11 @@ const params = {
     spread: 1.0,
     complexity: 1.0,
     size: 2.0,
+    shape: 0,
     rotationSpeed: 0.5,
     animate: true,
     autoRotate: true,
+    filledShapes: true,
     blackWhite: false
 };
 
@@ -104,13 +106,30 @@ function createParticleSystem() {
         blackWhite: params.blackWhite
     });
     
+    // Generate shape data
+    const shapes = new Float32Array(params.particleCount);
+    if (params.shape === 9) {
+        // Mixed: random shape for each particle
+        for (let i = 0; i < params.particleCount; i++) {
+            shapes[i] = Math.floor(Math.random() * 9);
+        }
+    } else {
+        // All particles same shape
+        for (let i = 0; i < params.particleCount; i++) {
+            shapes[i] = params.shape;
+        }
+    }
+    
     geometry.setAttribute('position', new THREE.BufferAttribute(patternData.positions, 3));
     geometry.setAttribute('customColor', new THREE.BufferAttribute(patternData.colors, 3));
     geometry.setAttribute('size', new THREE.BufferAttribute(patternData.sizes, 1));
+    geometry.setAttribute('shapeType', new THREE.BufferAttribute(shapes, 1));
     
     // Create shader material
     const material = new THREE.ShaderMaterial({
-        uniforms: {},
+        uniforms: {
+            filled: { value: params.filledShapes ? 1.0 : 0.0 }
+        },
         vertexShader: getVertexShader(),
         fragmentShader: getFragmentShader(),
         transparent: true,
@@ -139,6 +158,16 @@ function updateParticleSystem() {
     particleSystem.geometry.attributes.position.needsUpdate = true;
     particleSystem.geometry.attributes.customColor.needsUpdate = true;
     particleSystem.geometry.attributes.size.needsUpdate = true;
+    
+    // Shape doesn't need updating every frame unless it's mixed
+    if (params.shape === 9) {
+        const shapes = new Float32Array(params.particleCount);
+        for (let i = 0; i < params.particleCount; i++) {
+            shapes[i] = Math.floor(Math.random() * 9);
+        }
+        particleSystem.geometry.setAttribute('shapeType', new THREE.BufferAttribute(shapes, 1));
+        particleSystem.geometry.attributes.shapeType.needsUpdate = true;
+    }
 }
 
 function animate() {
@@ -250,6 +279,27 @@ function setupControls() {
         sizeValue.textContent = params.size.toFixed(1);
     });
     
+    // Shape selector
+    const shapeSelect = document.getElementById('shapeSelect');
+    shapeSelect.addEventListener('change', (e) => {
+        params.shape = parseInt(e.target.value);
+        
+        // Update all particle shapes
+        const shapes = new Float32Array(params.particleCount);
+        if (params.shape === 9) {
+            // Mixed
+            for (let i = 0; i < params.particleCount; i++) {
+                shapes[i] = Math.floor(Math.random() * 9);
+            }
+        } else {
+            for (let i = 0; i < params.particleCount; i++) {
+                shapes[i] = params.shape;
+            }
+        }
+        particleSystem.geometry.setAttribute('shapeType', new THREE.BufferAttribute(shapes, 1));
+        particleSystem.geometry.attributes.shapeType.needsUpdate = true;
+    });
+    
     // Rotation speed
     const rotationSlider = document.getElementById('rotationSpeed');
     const rotationValue = document.getElementById('rotationValue');
@@ -268,6 +318,13 @@ function setupControls() {
     const autoRotateCheckbox = document.getElementById('autoRotate');
     autoRotateCheckbox.addEventListener('change', (e) => {
         params.autoRotate = e.target.checked;
+    });
+    
+    // Filled shapes checkbox
+    const filledShapesCheckbox = document.getElementById('filledShapes');
+    filledShapesCheckbox.addEventListener('change', (e) => {
+        params.filledShapes = e.target.checked;
+        particleSystem.material.uniforms.filled.value = params.filledShapes ? 1.0 : 0.0;
     });
     
     // Black & white checkbox
@@ -307,8 +364,15 @@ function setupControls() {
         rotationSlider.value = params.rotationSpeed;
         rotationValue.textContent = params.rotationSpeed.toFixed(1);
         
+        params.filledShapes = Math.random() > 0.3;
+        filledShapesCheckbox.checked = params.filledShapes;
+        particleSystem.material.uniforms.filled.value = params.filledShapes ? 1.0 : 0.0;
+        
         params.blackWhite = Math.random() > 0.7;
         blackWhiteCheckbox.checked = params.blackWhite;
+        
+        params.shape = Math.floor(Math.random() * 10);
+        shapeSelect.value = params.shape;
         
         createParticleSystem();
     });
