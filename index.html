@@ -2,12 +2,13 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Particle Op-Art</title>
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
     <div id="container">
+        <button id="mobileControlsToggle" class="mobile-controls-toggle">⚙️</button>
         <div id="controls">
             <h1>Particle Op-Art</h1>
             
@@ -29,8 +30,8 @@
             </div>
             
             <div class="control-group">
-                <label>Particle Count: <span id="particleCountValue">10000</span></label>
-                <input type="range" id="particleCount" min="1000" max="50000" step="1000" value="10000">
+                <label>Particle Count: <span id="particleCountValue">5000</span></label>
+                <input type="range" id="particleCount" min="1000" max="50000" step="1000" value="5000">
             </div>
             
             <div class="control-group">
@@ -113,9 +114,16 @@
                 </div>
             </div>
             
+            <div id="mobilePerformance" class="mobile-performance hidden">
+                <span>FPS: <span id="fpsDisplay">60</span></span>
+                <span>Particles: <span id="particleDisplay">5000</span></span>
+            </div>
+            
             <div class="info">
-                <p>Click + drag to rotate</p>
-                <p>Scroll to zoom</p>
+                <p class="desktop-only">Click + drag to rotate</p>
+                <p class="desktop-only">Scroll to zoom</p>
+                <p class="mobile-only">Touch + drag to rotate</p>
+                <p class="mobile-only">Pinch to zoom</p>
                 <p>Spacebar to pause</p>
             </div>
         </div>

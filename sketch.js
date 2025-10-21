@@ -12,6 +12,13 @@ let targetRotationY = 0;
 let currentRotationX = 0;
 let currentRotationY = 0;
 
+// Touch controls
+let isTouching = false;
+let previousTouchX = 0;
+let previousTouchY = 0;
+let lastTouchDistance = 0;
+let initialCameraZ = 500;
+
 // Video recording
 let mediaRecorder;
 let recordedChunks = [];
@@ -19,8 +26,17 @@ let isRecording = false;
 let recordingStartTime = 0;
 let recordingInterval;
 
+// Performance monitoring for mobile
+let frameCount = 0;
+let lastTime = 0;
+let fps = 60;
+let performanceMode = isMobile;
+
+// Detect mobile device
+const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth < 768;
+
 const params = {
-    particleCount: 10000,
+    particleCount: isMobile ? 5000 : 10000, // Reduce particles on mobile
     speed: 1.0,
     spread: 1.0,
     complexity: 1.0,
@@ -41,20 +57,22 @@ function init() {
     // Set up camera
     const container = document.getElementById('canvas-container');
     camera = new THREE.PerspectiveCamera(
-        75,
+        isMobile ? 60 : 75, // Wider FOV on mobile for better viewing
         container.clientWidth / container.clientHeight,
         1,
         10000
     );
-    camera.position.z = 500;
+    camera.position.z = isMobile ? 400 : 500; // Closer on mobile
+    initialCameraZ = camera.position.z;
     
     // Set up renderer
     renderer = new THREE.WebGLRenderer({ 
-        antialias: true,
-        preserveDrawingBuffer: true // For screenshots
+        antialias: !isMobile, // Disable antialiasing on mobile for performance
+        preserveDrawingBuffer: true, // For screenshots
+        powerPreference: isMobile ? "low-power" : "high-performance"
     });
     renderer.setSize(container.clientWidth, container.clientHeight);
-    renderer.setPixelRatio(window.devicePixelRatio);
+    renderer.setPixelRatio(isMobile ? Math.min(window.devicePixelRatio, 2) : window.devicePixelRatio);
     container.appendChild(renderer.domElement);
     
     // Initialize patterns
@@ -173,6 +191,29 @@ function updateParticleSystem() {
 function animate() {
     requestAnimationFrame(animate);
     
+    // Performance monitoring
+    frameCount++;
+    const currentTime = performance.now();
+    if (currentTime - lastTime >= 1000) {
+        fps = frameCount;
+        frameCount = 0;
+        lastTime = currentTime;
+        
+        // Update performance display
+        if (isMobile) {
+            document.getElementById('fpsDisplay').textContent = fps;
+            document.getElementById('particleDisplay').textContent = params.particleCount;
+        }
+        
+        // Auto-adjust quality on mobile if performance is poor
+        if (isMobile && fps < 30 && params.particleCount > 2000) {
+            params.particleCount = Math.max(2000, params.particleCount - 1000);
+            document.getElementById('particleCount').value = params.particleCount;
+            document.getElementById('particleCountValue').textContent = params.particleCount;
+            createParticleSystem();
+        }
+    }
+    
     if (params.animate) {
         time += 0.016 * params.speed;
         updateParticleSystem();
@@ -227,6 +268,63 @@ function setupMouseControls() {
         e.preventDefault();
         camera.position.z += e.deltaY * 0.5;
         camera.position.z = clamp(camera.position.z, 100, 2000);
+    });
+    
+    // Touch controls for mobile
+    container.addEventListener('touchstart', (e) => {
+        e.preventDefault();
+        if (e.touches.length === 1) {
+            // Single touch - rotation
+            isTouching = true;
+            previousTouchX = e.touches[0].clientX;
+            previousTouchY = e.touches[0].clientY;
+        } else if (e.touches.length === 2) {
+            // Two finger pinch - zoom
+            isTouching = true;
+            const touch1 = e.touches[0];
+            const touch2 = e.touches[1];
+            lastTouchDistance = Math.sqrt(
+                Math.pow(touch2.clientX - touch1.clientX, 2) +
+                Math.pow(touch2.clientY - touch1.clientY, 2)
+            );
+        }
+    });
+    
+    container.addEventListener('touchmove', (e) => {
+        e.preventDefault();
+        if (e.touches.length === 1 && isTouching) {
+            // Single touch - rotation
+            const deltaX = e.touches[0].clientX - previousTouchX;
+            const deltaY = e.touches[0].clientY - previousTouchY;
+            
+            targetRotationY += deltaX * 0.005;
+            targetRotationX += deltaY * 0.005;
+            
+            previousTouchX = e.touches[0].clientX;
+            previousTouchY = e.touches[0].clientY;
+        } else if (e.touches.length === 2 && isTouching) {
+            // Two finger pinch - zoom
+            const touch1 = e.touches[0];
+            const touch2 = e.touches[1];
+            const currentDistance = Math.sqrt(
+                Math.pow(touch2.clientX - touch1.clientX, 2) +
+                Math.pow(touch2.clientY - touch1.clientY, 2)
+            );
+            
+            if (lastTouchDistance > 0) {
+                const scale = currentDistance / lastTouchDistance;
+                camera.position.z /= scale;
+                camera.position.z = clamp(camera.position.z, 100, 2000);
+            }
+            
+            lastTouchDistance = currentDistance;
+        }
+    });
+    
+    container.addEventListener('touchend', (e) => {
+        e.preventDefault();
+        isTouching = false;
+        lastTouchDistance = 0;
     });
 }
 
@@ -404,6 +502,27 @@ function setupControls() {
             animateCheckbox.checked = params.animate;
         }
     });
+    
+    // Mobile controls toggle
+    if (isMobile) {
+        const mobileToggle = document.getElementById('mobileControlsToggle');
+        const controls = document.getElementById('controls');
+        
+        mobileToggle.addEventListener('click', () => {
+            controls.classList.toggle('visible');
+        });
+        
+        // Close controls when clicking outside
+        document.addEventListener('click', (e) => {
+            if (!controls.contains(e.target) && !mobileToggle.contains(e.target)) {
+                controls.classList.remove('visible');
+            }
+        });
+        
+        // Show performance indicator on mobile
+        const performanceIndicator = document.getElementById('mobilePerformance');
+        performanceIndicator.classList.remove('hidden');
+    }
 }
 
 function onWindowResize() {
