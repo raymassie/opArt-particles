@@ -9,6 +9,7 @@ body {
     background: #000;
     color: #fff;
     overflow: hidden;
+    touch-action: none; /* Prevent default touch behaviors */
 }
 
 #container {
@@ -18,11 +19,31 @@ body {
 
 #controls {
     width: 300px;
+    min-width: 300px;
     padding: 20px;
     background: #1a1a1a;
     overflow-y: auto;
     border-right: 2px solid #2a2a2a;
     z-index: 10;
+    flex-shrink: 0;
+}
+
+#canvas-container {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #000;
+}
+
+/* Desktop - ensure controls are visible and full width */
+@media (min-width: 769px) {
+    #controls {
+        position: relative;
+        transform: translateX(0) !important;
+        width: 300px;
+        min-width: 300px;
+    }
 }
 
 h1 {
@@ -185,5 +206,147 @@ select option {
     font-size: 14px;
     font-weight: 600;
     font-variant-numeric: tabular-nums;
+}
+
+/* Hamburger Menu Toggle */
+.menu-toggle {
+    position: fixed;
+    top: 20px;
+    left: 20px;
+    z-index: 1000;
+    width: 50px;
+    height: 50px;
+    background: #2a2a2a;
+    border: 2px solid #3a3a3a;
+    border-radius: 8px;
+    cursor: pointer;
+    display: none;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 6px;
+    padding: 0;
+    transition: background 0.3s;
+}
+
+.menu-toggle:hover {
+    background: #3a3a3a;
+}
+
+.menu-toggle:active {
+    background: #4a4a4a;
+}
+
+.menu-toggle span {
+    display: block;
+    width: 25px;
+    height: 3px;
+    background: #fff;
+    border-radius: 2px;
+    transition: transform 0.3s, opacity 0.3s;
+}
+
+.menu-toggle.active span:nth-child(1) {
+    transform: translateY(9px) rotate(45deg);
+}
+
+.menu-toggle.active span:nth-child(2) {
+    opacity: 0;
+}
+
+.menu-toggle.active span:nth-child(3) {
+    transform: translateY(-9px) rotate(-45deg);
+}
+
+/* Mobile/Tablet Responsive Styles */
+@media (max-width: 768px) {
+    .menu-toggle {
+        display: flex;
+    }
+    
+    /* On mobile/tablet, hide sidebar by default */
+    #controls.controls-closed {
+        transform: translateX(-100%);
+    }
+    
+    #controls.controls-open {
+        transform: translateX(0);
+    }
+    
+    #controls {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 90vw;
+        max-width: 340px;
+        height: 100vh;
+        transform: translateX(-100%);
+        transition: transform 0.3s ease;
+        box-shadow: 2px 0 10px rgba(0, 0, 0, 0.5);
+        z-index: 999;
+        padding: 20px 15px;
+    }
+    
+    .control-group label {
+        font-size: 11px;
+        white-space: normal;
+        word-wrap: break-word;
+        line-height: 1.3;
+        display: block;
+        width: 100%;
+    }
+    
+    .control-group select {
+        font-size: 13px;
+        padding: 10px;
+    }
+    
+    #canvas-container {
+        width: 100vw !important;
+    }
+    
+    /* Larger touch targets */
+    .control-group input[type="range"] {
+        height: 40px;
+    }
+    
+    .control-group input[type="checkbox"] {
+        width: 20px;
+        height: 20px;
+    }
+    
+    button {
+        padding: 16px;
+        font-size: 14px;
+    }
+    
+    .info {
+        font-size: 11px;
+    }
+    
+    .info p {
+        font-size: 9px;
+    }
+}
+
+@media (max-width: 480px) {
+    h1 {
+        font-size: 20px;
+        margin-bottom: 20px;
+    }
+    
+    .control-group label {
+        font-size: 10px;
+    }
+    
+    #controls {
+        width: 92vw;
+        max-width: 320px;
+        padding: 18px 12px;
+    }
+    
+    .control-group {
+        margin-bottom: 16px;
+    }
 }
 

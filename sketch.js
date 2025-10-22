@@ -19,12 +19,17 @@ let isRecording = false;
 let recordingStartTime = 0;
 let recordingInterval;
 
+// Mobile detection and touch
+let isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+let touches = [];
+let lastPinchDistance = 0;
+
 const params = {
-    particleCount: 10000,
+    particleCount: isMobile ? 3000 : 10000, // Reduce particles on mobile
     speed: 1.0,
     spread: 1.0,
     complexity: 1.0,
-    size: 2.0,
+    size: isMobile ? 3.0 : 2.0, // Slightly larger on mobile
     shape: 0,
     rotationSpeed: 0.5,
     animate: true,
@@ -195,6 +200,7 @@ function animate() {
 function setupMouseControls() {
     const container = document.getElementById('canvas-container');
     
+    // Mouse controls
     container.addEventListener('mousedown', (e) => {
         isDragging = true;
         previousMouseX = e.clientX;
@@ -228,6 +234,68 @@ function setupMouseControls() {
         camera.position.z += e.deltaY * 0.5;
         camera.position.z = clamp(camera.position.z, 100, 2000);
     });
+    
+    // Touch controls
+    container.addEventListener('touchstart', (e) => {
+        e.preventDefault();
+        touches = Array.from(e.touches);
+        
+        if (touches.length === 1) {
+            isDragging = true;
+            previousMouseX = touches[0].clientX;
+            previousMouseY = touches[0].clientY;
+        } else if (touches.length === 2) {
+            isDragging = false;
+            const dx = touches[1].clientX - touches[0].clientX;
+            const dy = touches[1].clientY - touches[0].clientY;
+            lastPinchDistance = Math.sqrt(dx * dx + dy * dy);
+        }
+    }, { passive: false });
+    
+    container.addEventListener('touchmove', (e) => {
+        e.preventDefault();
+        touches = Array.from(e.touches);
+        
+        if (touches.length === 1 && isDragging) {
+            // Single touch - rotate
+            const deltaX = touches[0].clientX - previousMouseX;
+            const deltaY = touches[0].clientY - previousMouseY;
+            
+            targetRotationY += deltaX * 0.005;
+            targetRotationX += deltaY * 0.005;
+            
+            previousMouseX = touches[0].clientX;
+            previousMouseY = touches[0].clientY;
+        } else if (touches.length === 2) {
+            // Two fingers - pinch to zoom
+            const dx = touches[1].clientX - touches[0].clientX;
+            const dy = touches[1].clientY - touches[0].clientY;
+            const distance = Math.sqrt(dx * dx + dy * dy);
+            
+            if (lastPinchDistance > 0) {
+                const delta = distance - lastPinchDistance;
+                camera.position.z -= delta * 2;
+                camera.position.z = clamp(camera.position.z, 100, 2000);
+            }
+            
+            lastPinchDistance = distance;
+        }
+    }, { passive: false });
+    
+    container.addEventListener('touchend', (e) => {
+        e.preventDefault();
+        touches = Array.from(e.touches);
+        
+        if (touches.length === 0) {
+            isDragging = false;
+            lastPinchDistance = 0;
+        } else if (touches.length === 1) {
+            isDragging = true;
+            previousMouseX = touches[0].clientX;
+            previousMouseY = touches[0].clientY;
+            lastPinchDistance = 0;
+        }
+    }, { passive: false });
 }
 
 function setupControls() {
@@ -404,6 +472,40 @@ function setupControls() {
             animateCheckbox.checked = params.animate;
         }
     });
+    
+    // Menu toggle for mobile/tablet
+    const menuToggle = document.getElementById('menuToggle');
+    const controls = document.getElementById('controls');
+    
+    // Initialize controls state based on viewport
+    if (window.innerWidth > 768) {
+        controls.classList.remove('controls-closed', 'controls-open');
+    }
+    
+    if (menuToggle) {
+        menuToggle.addEventListener('click', () => {
+            menuToggle.classList.toggle('active');
+            controls.classList.toggle('controls-open');
+            controls.classList.toggle('controls-closed');
+        });
+        
+        // Close menu when clicking on canvas on mobile/tablet
+        document.getElementById('canvas-container').addEventListener('click', () => {
+            if (window.innerWidth <= 768 && controls.classList.contains('controls-open')) {
+                menuToggle.classList.remove('active');
+                controls.classList.remove('controls-open');
+                controls.classList.add('controls-closed');
+            }
+        });
+    }
+    
+    // Update particle count slider max on mobile
+    if (isMobile) {
+        const particleCountSlider = document.getElementById('particleCount');
+        particleCountSlider.max = 10000; // Lower max on mobile
+        particleCountSlider.value = params.particleCount;
+        particleCountValue.textContent = params.particleCount;
+    }
 }
 
 function onWindowResize() {
@@ -411,6 +513,23 @@ function onWindowResize() {
     camera.aspect = container.clientWidth / container.clientHeight;
     camera.updateProjectionMatrix();
     renderer.setSize(container.clientWidth, container.clientHeight);
+    
+    // Handle controls visibility on resize
+    const controls = document.getElementById('controls');
+    const menuToggle = document.getElementById('menuToggle');
+    
+    if (window.innerWidth > 768) {
+        // Desktop - show controls, remove mobile classes
+        controls.classList.remove('controls-closed', 'controls-open');
+        if (menuToggle) {
+            menuToggle.classList.remove('active');
+        }
+    } else {
+        // Mobile/Tablet - ensure controls are closed unless explicitly opened
+        if (!controls.classList.contains('controls-open')) {
+            controls.classList.add('controls-closed');
+        }
+    }
 }
 
 // Video recording functions

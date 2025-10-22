@@ -7,8 +7,14 @@
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
+    <button id="menuToggle" class="menu-toggle" aria-label="Toggle menu">
+        <span></span>
+        <span></span>
+        <span></span>
+    </button>
+    
     <div id="container">
-        <div id="controls">
+        <div id="controls" class="controls-closed">
             <h1>Particle Op-Art</h1>
             
             <div class="control-group">
@@ -114,8 +120,10 @@
             </div>
             
             <div class="info">
-                <p>Click + drag to rotate</p>
-                <p>Scroll to zoom</p>
+                <p>Desktop: Click + drag to rotate</p>
+                <p>Desktop: Scroll to zoom</p>
+                <p>Mobile: Swipe to rotate</p>
+                <p>Mobile: Pinch to zoom</p>
                 <p>Spacebar to pause</p>
             </div>
         </div>
