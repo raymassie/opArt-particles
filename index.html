@@ -20,17 +20,36 @@
             <div class="control-group">
                 <label>Pattern:</label>
                 <select id="patternSelect">
-                    <option value="spiral">Spiral Vortex</option>
-                    <option value="wave">Wave Field</option>
-                    <option value="ripple">Ripple Pool</option>
-                    <option value="liquid">Liquid Metal</option>
-                    <option value="cymatics">Cymatics</option>
-                    <option value="fabric">Flowing Fabric</option>
-                    <option value="torus">Torus Knot</option>
-                    <option value="sphere">Sphere Burst</option>
-                    <option value="tunnel">Tunnel Vision</option>
-                    <option value="moire">3D Moiré</option>
-                    <option value="tornado">Tornado</option>
+                    <optgroup label="2D Op-Art (Dense)">
+                        <option value="concentricRings">Concentric Rings</option>
+                        <option value="denseRiley">Dense Riley Waves</option>
+                        <option value="radialBurst">Radial Burst</option>
+                    </optgroup>
+                    <optgroup label="Op-Art (Classic)">
+                        <option value="rileyLines">Riley Lines</option>
+                        <option value="warpedGrid">Warped Grid</option>
+                        <option value="moireGrid">Moiré Grid</option>
+                        <option value="pulseRings">Pulse Rings</option>
+                    </optgroup>
+                    <optgroup label="3D Forms">
+                        <option value="particleCube">Cube</option>
+                        <option value="particlePyramid">Pyramid</option>
+                        <option value="particleOctahedron">Octahedron</option>
+                        <option value="particleIcosahedron">Icosahedron</option>
+                    </optgroup>
+                    <optgroup label="Flow & Motion">
+                        <option value="spiral">Spiral Vortex</option>
+                        <option value="wave">Wave Field</option>
+                        <option value="ripple">Ripple Pool</option>
+                        <option value="liquid">Liquid Metal</option>
+                        <option value="cymatics">Cymatics</option>
+                        <option value="fabric">Flowing Fabric</option>
+                        <option value="torus">Torus Knot</option>
+                        <option value="sphere">Sphere Burst</option>
+                        <option value="tunnel">Tunnel Vision</option>
+                        <option value="moire">3D Moiré</option>
+                        <option value="tornado">Tornado</option>
+                    </optgroup>
                 </select>
             </div>
             
@@ -108,6 +127,43 @@
                 </label>
             </div>
             
+            <div class="section-divider">Post-Processing</div>
+            
+            <div class="control-group">
+                <label>
+                    <input type="checkbox" id="bloomEnabled">
+                    Bloom/Glow
+                </label>
+            </div>
+            
+            <div class="control-group">
+                <label>Bloom Strength: <span id="bloomStrengthValue">1.5</span></label>
+                <input type="range" id="bloomStrength" min="0" max="5" step="0.1" value="1.5">
+            </div>
+            
+            <div class="control-group">
+                <label>Bloom Radius: <span id="bloomRadiusValue">0.8</span></label>
+                <input type="range" id="bloomRadius" min="0" max="1" step="0.05" value="0.8">
+            </div>
+            
+            <div class="section-divider">Camera</div>
+            
+            <div class="control-group">
+                <label>
+                    <input type="checkbox" id="cameraPaths">
+                    Animated Camera
+                </label>
+            </div>
+            
+            <div class="control-group">
+                <label>3D Mode:</label>
+                <select id="stereoMode">
+                    <option value="none">None</option>
+                    <option value="anaglyph">Anaglyph (Red/Cyan)</option>
+                    <option value="sideBySide">Side-by-Side</option>
+                </select>
+            </div>
+            
             <button id="randomize">Randomize</button>
             <button id="screenshot">Save Image</button>
             
@@ -132,7 +188,26 @@
     </div>
     
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/EffectComposer.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/RenderPass.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/ShaderPass.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/shaders/CopyShader.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/shaders/LuminosityHighPassShader.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/UnrealBloomPass.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/effects/StereoEffect.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/effects/AnaglyphEffect.js"></script>
     <script src="utils/helpers.js"></script>
+    <script src="patterns/concentricRings.js"></script>
+    <script src="patterns/denseRiley.js"></script>
+    <script src="patterns/radialBurst.js"></script>
+    <script src="patterns/particleCube.js"></script>
+    <script src="patterns/particlePyramid.js"></script>
+    <script src="patterns/particleOctahedron.js"></script>
+    <script src="patterns/particleIcosahedron.js"></script>
+    <script src="patterns/rileyLines.js"></script>
+    <script src="patterns/warpedGrid.js"></script>
+    <script src="patterns/moireGrid.js"></script>
+    <script src="patterns/pulseRings.js"></script>
     <script src="patterns/spiral.js"></script>
     <script src="patterns/wave.js"></script>
     <script src="patterns/ripple.js"></script>

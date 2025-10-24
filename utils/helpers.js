@@ -61,6 +61,26 @@ function getFragmentShader() {
         varying float vShapeType;
         varying float vFilled;
         
+        // Iridescent color shift based on angle and distance
+        vec3 getIridescence(vec2 p, float dist) {
+            float angle = atan(p.y, p.x);
+            float hue = angle * 0.1 + dist * 2.0;
+            
+            // Chromatic aberration at edges
+            vec3 chroma = vec3(
+                sin(hue) * 0.3,
+                sin(hue + 2.094) * 0.3,
+                sin(hue + 4.189) * 0.3
+            );
+            
+            return chroma;
+        }
+        
+        // Soft glow falloff
+        float softGlow(float dist, float radius) {
+            return exp(-dist * dist / (radius * radius));
+        }
+        
         // Helper function to create outline from filled shape
         float toOutline(float fillAlpha, vec2 p) {
             if (fillAlpha < 0.01) return 0.0;
@@ -186,6 +206,7 @@ function getFragmentShader() {
         
         void main() {
             vec2 center = gl_PointCoord - vec2(0.5);
+            float dist = length(center);
             float alpha = 0.0;
             
             // Select shape based on shapeType
@@ -220,10 +241,21 @@ function getFragmentShader() {
                 discard;
             }
             
-            // Enhance alpha
-            alpha = pow(alpha, 1.5);
+            // Soft glow with radial gradient
+            float glow = softGlow(dist, 0.5);
             
-            gl_FragColor = vec4(vColor, alpha);
+            // Add iridescence for bubble-like effect
+            vec3 iridescence = getIridescence(center, dist);
+            vec3 finalColor = vColor + iridescence * alpha * 0.4;
+            
+            // Edge highlight for translucent bubble effect
+            float edgeGlow = smoothstep(0.1, 0.4, dist) * smoothstep(0.5, 0.4, dist);
+            finalColor += vec3(0.3) * edgeGlow * alpha;
+            
+            // Soft translucent alpha with glow
+            float finalAlpha = alpha * (0.7 + glow * 0.3);
+            
+            gl_FragColor = vec4(finalColor, finalAlpha);
         }
     `;
 }

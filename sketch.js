@@ -12,6 +12,17 @@ let targetRotationY = 0;
 let currentRotationX = 0;
 let currentRotationY = 0;
 
+// Post-processing
+let composer, bloomPass;
+let usePostProcessing = false;
+
+// Stereo rendering
+let stereoEffect, anaglyphEffect;
+let currentStereoMode = 'none';
+
+// Camera animation
+let cameraPath = 0;
+
 // Video recording
 let mediaRecorder;
 let recordedChunks = [];
@@ -35,7 +46,14 @@ const params = {
     animate: true,
     autoRotate: true,
     filledShapes: true,
-    blackWhite: false
+    blackWhite: false,
+    // Post-processing
+    bloomEnabled: false,
+    bloomStrength: 1.5,
+    bloomRadius: 0.8,
+    // Camera
+    cameraPaths: false,
+    stereoMode: 'none'
 };
 
 function init() {
@@ -62,7 +80,43 @@ function init() {
     renderer.setPixelRatio(window.devicePixelRatio);
     container.appendChild(renderer.domElement);
     
+    // Set up post-processing (optional)
+    try {
+        setupPostProcessing();
+    } catch(e) {
+        console.warn('Post-processing not available:', e);
+    }
+    
+    // Set up stereo effects (optional)
+    try {
+        if (typeof THREE.StereoEffect !== 'undefined') {
+            stereoEffect = new THREE.StereoEffect(renderer);
+            stereoEffect.setSize(container.clientWidth, container.clientHeight);
+        }
+        if (typeof THREE.AnaglyphEffect !== 'undefined') {
+            anaglyphEffect = new THREE.AnaglyphEffect(renderer);
+            anaglyphEffect.setSize(container.clientWidth, container.clientHeight);
+        }
+    } catch(e) {
+        console.warn('Stereo effects not available:', e);
+    }
+    
     // Initialize patterns
+    // 2D Op-Art (Dense)
+    patterns.concentricRings = new ConcentricRingsPattern();
+    patterns.denseRiley = new DenseRileyPattern();
+    patterns.radialBurst = new RadialBurstPattern();
+    // 3D Forms
+    patterns.particleCube = new ParticleCubePattern();
+    patterns.particlePyramid = new ParticlePyramidPattern();
+    patterns.particleOctahedron = new ParticleOctahedronPattern();
+    patterns.particleIcosahedron = new ParticleIcosahedronPattern();
+    // Op-Art (Classic)
+    patterns.rileyLines = new RileyLinesPattern();
+    patterns.warpedGrid = new WarpedGridPattern();
+    patterns.moireGrid = new MoireGridPattern();
+    patterns.pulseRings = new PulseRingsPattern();
+    // Flow & Motion patterns
     patterns.spiral = new SpiralPattern();
     patterns.wave = new WavePattern();
     patterns.ripple = new RipplePattern();
@@ -183,18 +237,88 @@ function animate() {
         updateParticleSystem();
     }
     
-    // Smooth camera rotation
-    if (params.autoRotate) {
+    // Animated camera paths
+    if (params.cameraPaths && !isDragging) {
+        cameraPath += 0.005; // Smooth orbital speed
+        
+        // Orbit around the shape at fixed radius
+        const radius = 600;
+        camera.position.x = Math.sin(cameraPath) * radius;
+        camera.position.y = Math.sin(cameraPath * 0.5) * 200; // Gentle vertical motion
+        camera.position.z = Math.cos(cameraPath) * radius;
+        
+        // Always look at center
+        camera.lookAt(0, 0, 0);
+    }
+    
+    // Smooth camera rotation (only when not using camera paths)
+    if (params.autoRotate && !params.cameraPaths) {
         targetRotationY += 0.001 * params.rotationSpeed;
     }
     
-    currentRotationX += (targetRotationX - currentRotationX) * 0.05;
-    currentRotationY += (targetRotationY - currentRotationY) * 0.05;
+    // Only rotate the particle system if camera animation is off
+    if (!params.cameraPaths) {
+        currentRotationX += (targetRotationX - currentRotationX) * 0.05;
+        currentRotationY += (targetRotationY - currentRotationY) * 0.05;
+        
+        particleSystem.rotation.x = currentRotationX;
+        particleSystem.rotation.y = currentRotationY;
+    } else {
+        // Keep shape stationary when camera is moving
+        particleSystem.rotation.x = 0;
+        particleSystem.rotation.y = 0;
+    }
     
-    particleSystem.rotation.x = currentRotationX;
-    particleSystem.rotation.y = currentRotationY;
+    // Render with appropriate method
+    if (params.stereoMode !== 'none' && stereoEffect) {
+        renderStereo();
+    } else if (usePostProcessing && composer) {
+        composer.render();
+    } else {
+        renderer.render(scene, camera);
+    }
+}
+
+function setupPostProcessing() {
+    if (typeof THREE.EffectComposer === 'undefined') {
+        console.warn('EffectComposer not available');
+        return;
+    }
     
-    renderer.render(scene, camera);
+    try {
+        // Create composer
+        composer = new THREE.EffectComposer(renderer);
+        
+        // Render pass
+        const renderPass = new THREE.RenderPass(scene, camera);
+        composer.addPass(renderPass);
+        
+        // Bloom pass
+        if (typeof THREE.UnrealBloomPass !== 'undefined') {
+            bloomPass = new THREE.UnrealBloomPass(
+                new THREE.Vector2(window.innerWidth, window.innerHeight),
+                1.5,  // strength
+                0.8,  // radius
+                0.1   // threshold (lower = more glow)
+            );
+            bloomPass.enabled = false; // Start disabled
+            composer.addPass(bloomPass);
+        }
+    } catch(e) {
+        console.error('Error setting up post-processing:', e);
+        composer = null;
+    }
+}
+
+function renderStereo() {
+    if (params.stereoMode === 'anaglyph' && anaglyphEffect) {
+        anaglyphEffect.render(scene, camera);
+    } else if (params.stereoMode === 'sideBySide' && stereoEffect) {
+        stereoEffect.render(scene, camera);
+    } else {
+        // Fallback to normal render
+        renderer.render(scene, camera);
+    }
 }
 
 function setupMouseControls() {
@@ -401,6 +525,62 @@ function setupControls() {
         params.blackWhite = e.target.checked;
     });
     
+    // Bloom enabled
+    const bloomEnabledCheckbox = document.getElementById('bloomEnabled');
+    bloomEnabledCheckbox.addEventListener('change', (e) => {
+        params.bloomEnabled = e.target.checked;
+        updatePostProcessing();
+    });
+    
+    // Bloom strength
+    const bloomStrengthSlider = document.getElementById('bloomStrength');
+    const bloomStrengthValue = document.getElementById('bloomStrengthValue');
+    bloomStrengthSlider.addEventListener('input', (e) => {
+        params.bloomStrength = parseFloat(e.target.value);
+        bloomStrengthValue.textContent = params.bloomStrength.toFixed(1);
+        if (bloomPass) {
+            bloomPass.strength = params.bloomStrength;
+        }
+    });
+    
+    // Bloom radius
+    const bloomRadiusSlider = document.getElementById('bloomRadius');
+    const bloomRadiusValue = document.getElementById('bloomRadiusValue');
+    bloomRadiusSlider.addEventListener('input', (e) => {
+        params.bloomRadius = parseFloat(e.target.value);
+        bloomRadiusValue.textContent = params.bloomRadius.toFixed(2);
+        if (bloomPass) {
+            bloomPass.radius = params.bloomRadius;
+        }
+    });
+    
+    // Camera paths
+    const cameraPathsCheckbox = document.getElementById('cameraPaths');
+    cameraPathsCheckbox.addEventListener('change', (e) => {
+        params.cameraPaths = e.target.checked;
+        if (e.target.checked) {
+            // Reset rotation values when enabling camera paths
+            targetRotationX = 0;
+            targetRotationY = 0;
+            currentRotationX = 0;
+            currentRotationY = 0;
+            particleSystem.rotation.x = 0;
+            particleSystem.rotation.y = 0;
+            cameraPath = 0; // Start from beginning
+        } else {
+            // Reset camera position
+            camera.position.set(0, 0, 500);
+            camera.lookAt(0, 0, 0);
+        }
+    });
+    
+    // Stereo mode
+    const stereoModeSelect = document.getElementById('stereoMode');
+    stereoModeSelect.addEventListener('change', (e) => {
+        params.stereoMode = e.target.value;
+        currentStereoMode = e.target.value;
+    });
+    
     // Randomize button
     const randomizeBtn = document.getElementById('randomize');
     randomizeBtn.addEventListener('click', () => {
@@ -508,11 +688,32 @@ function setupControls() {
     }
 }
 
+function updatePostProcessing() {
+    usePostProcessing = params.bloomEnabled;
+    
+    if (bloomPass) {
+        bloomPass.enabled = params.bloomEnabled;
+    }
+}
+
 function onWindowResize() {
     const container = document.getElementById('canvas-container');
     camera.aspect = container.clientWidth / container.clientHeight;
     camera.updateProjectionMatrix();
     renderer.setSize(container.clientWidth, container.clientHeight);
+    
+    // Update post-processing size
+    if (composer) {
+        composer.setSize(container.clientWidth, container.clientHeight);
+    }
+    
+    // Update stereo effect size
+    if (stereoEffect) {
+        stereoEffect.setSize(container.clientWidth, container.clientHeight);
+    }
+    if (anaglyphEffect) {
+        anaglyphEffect.setSize(container.clientWidth, container.clientHeight);
+    }
     
     // Handle controls visibility on resize
     const controls = document.getElementById('controls');
